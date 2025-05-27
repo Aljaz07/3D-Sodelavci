@@ -2,202 +2,200 @@
 <html lang="sl">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>3D DEMO Naročila</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>3D Naročila</title>
 <style>
-  body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: linear-gradient(145deg, #0f0f0f, #1c1c1c);
-    color: #eee;
-  }
-  .container {
-    max-width: 700px;
-    margin: 30px auto;
-    background: rgba(30, 30, 30, 0.9);
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-  }
-  h1, h2 {
-    text-align: center;
-  }
-  form {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-  form input, form select {
-    padding: 10px;
-    border: none;
-    border-radius: 5px;
-    background: #222;
-    color: #eee;
-  }
-  form button {
-    grid-column: 1 / -1;
-    background: #0d6efd;
-    color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  table {
-    width: 100%;
-    margin-top: 20px;
-    border-collapse: collapse;
-  }
-  th, td {
-    border: 1px solid #444;
-    padding: 8px;
-  }
-  th {
-    background: #0d6efd;
-  }
-  #loginContainer, #appContainer {
-    display: none;
-  }
-  .visible {
-    display: block;
-  }
+  body { background: #121212; color: #eee; font-family: sans-serif; padding: 20px;}
+  .container { max-width: 800px; margin: auto; background: #222; padding: 20px; border-radius: 10px;}
+  input, button, select { width: 100%; margin: 8px 0; padding: 10px; border-radius: 5px; border: none; }
+  button { background: #00cccc; color: black; font-weight: bold; cursor: pointer; }
+  button:hover { background: #00ffff; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  th, td { border: 1px solid #444; padding: 8px; text-align: center; }
+  th { background: #00cccc; }
+  #loginSection, #appSection { display: none; }
 </style>
+<script src="https://cdn.emailjs.com/dist/email.min.js"></script>
 </head>
 <body>
 
-<div class="container visible" id="loginContainer">
-  <h1>Prijava</h1>
-  <input type="email" id="emailLogin" placeholder="Email" required />
-  <input type="password" id="gesloLogin" placeholder="Geslo" required />
-  <button id="prijavaBtn">Prijava</button>
+<div class="container">
+
+  <div id="loginSection">
+    <h2>Prijava</h2>
+    <input id="username" placeholder="Uporabniško ime" />
+    <input id="password" type="password" placeholder="Geslo" />
+    <button id="loginBtn">Prijavi se</button>
+    <p id="loginMsg" style="color: red;"></p>
+  </div>
+
+  <div id="appSection">
+    <h1>3D Naročila</h1>
+    <form id="orderForm">
+      <input type="text" id="ime" placeholder="Ime" required />
+      <input type="text" id="priimek" placeholder="Priimek" required />
+      <input type="email" id="email" placeholder="Email" required />
+      <input type="tel" id="telefon" placeholder="Telefon" required />
+      <input type="text" id="stIzdelka" placeholder="Št. izdelka" required />
+      <input type="text" id="imeIzdelka" placeholder="Ime izdelka" required />
+      <input type="number" id="kolicina" placeholder="Količina" min="1" required />
+      <select id="sodelavec" required>
+        <option value="" disabled selected>Izberi sodelavca</option>
+        <option value="sodelavec1@example.com">Sodelavec 1</option>
+        <option value="sodelavec2@example.com">Sodelavec 2</option>
+        <option value="sodelavec3@example.com">Sodelavec 3</option>
+      </select>
+      <button type="submit">Dodaj naročilo</button>
+    </form>
+
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>Ime</th><th>Priimek</th><th>Email</th><th>Telefon</th>
+          <th>Št. izdelka</th><th>Ime izdelka</th><th>Količina</th>>
+        </tr>
+      </thead>
+      <tbody id="ordersTableBody"></tbody>
+    </table>
+
+    <button id="logoutBtn" style="margin-top:20px;">Odjava</button>
+  </div>
+
 </div>
 
-<div class="container" id="appContainer">
-  <h1>Dobrodošel! 🎉</h1>
-  <h2>Dodaj naročilo</h2>
-  <form id="orderForm">
-    <input type="text" placeholder="Ime" id="ime" required />
-    <input type="text" placeholder="Priimek" id="priimek" required />
-    <input type="email" placeholder="Email" id="email" required />
-    <input type="tel" placeholder="Telefon" id="telefon" required />
-    <input type="text" placeholder="Št. izd." id="stIzdelka" required />
-    <input type="text" placeholder="Ime izdelka" id="imeIzdelka" required />
-    <input type="number" placeholder="Količina" id="kolicina" required />
-    <input type="number" placeholder="Zaloga" id="zaloga" required />
-    <select id="statusNarocila">
-      <option value="Novo">Novo</option>
-      <option value="V obdelavi">V obdelavi</option>
-      <option value="Zaključeno">Zaključeno</option>
-    </select>
-    <button type="button" id="oddajNarociloBtn">Shrani naročilo</button>
-  </form>
+<script>
+  // Inicializiraj EmailJS
+  (function(){
+    emailjs.init("WnsQ-mdOuOtf2gtxc"); // Tukaj vstavi svoj user ID iz EmailJS
+  })();
 
-  <h2>Moja naročila</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>#</th><th>Ime</th><th>Priimek</th><th>Email</th><th>Telefon</th>
-        <th>Št. izd.</th><th>Izdelek</th><th>Količina</th><th>Zaloga</th><th>Status</th>
-      </tr>
-    </thead>
-    <tbody id="ordersTableBody"></tbody>
-  </table>
-</div>
+  // --- Prijava ---
+  const loginSection = document.getElementById('loginSection');
+  const appSection = document.getElementById('appSection');
+  const loginBtn = document.getElementById('loginBtn');
+  const loginMsg = document.getElementById('loginMsg');
 
-<!-- Firebase SDK in aplikacija -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-auth.js";
-  import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyBhNAXc73xf3MDWvtzqPflPzo5ctGspQrc",
-    authDomain: "d-narocila.firebaseapp.com",
-    projectId: "d-narocila",
-    storageBucket: "d-narocila.appspot.com",
-    messagingSenderId: "520918393310",
-    appId: "1:520918393310:web:a25bb3e86789b4f7f7fd4f",
-    measurementId: "G-BD9Q07M17B"
+  const users = {
+    "aljaz": "loveme",
+    "admin": "admin123"
   };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-
-  async function prijava(email, geslo) {
-    try {
-      await signInWithEmailAndPassword(auth, email, geslo);
-      document.getElementById("loginContainer").classList.remove("visible");
-      document.getElementById("appContainer").classList.add("visible");
-      naloziNarocila();
-    } catch (err) {
-      alert("Napaka pri prijavi: " + err.message);
-    }
+  function showApp() {
+    loginSection.style.display = 'none';
+    appSection.style.display = 'block';
+  }
+  function showLogin() {
+    loginSection.style.display = 'block';
+    appSection.style.display = 'none';
   }
 
-  async function dodajNarocilo(narocilo) {
-    try {
-      await addDoc(collection(db, "narocila"), narocilo);
-      alert("Naročilo shranjeno!");
-      naloziNarocila();
-      document.getElementById("orderForm").reset();
-    } catch (err) {
-      alert("Napaka pri vnosu: " + err.message);
-    }
+  if(localStorage.getItem('loggedIn') === 'true') {
+    showApp();
+  } else {
+    showLogin();
   }
 
-  async function naloziNarocila() {
-    const user = auth.currentUser;
-    if (!user) return;
-    const q = query(collection(db, "narocila"), where("uid", "==", user.uid));
-    const querySnapshot = await getDocs(q);
-    const tbody = document.getElementById("ordersTableBody");
-    tbody.innerHTML = "";
-    let i = 1;
-    querySnapshot.forEach(doc => {
-      const n = doc.data();
-      const row = document.createElement("tr");
-      row.innerHTML = `<td>${i++}</td><td>${n.ime}</td><td>${n.priimek}</td><td>${n.email}</td>
-        <td>${n.telefon}</td><td>${n.stIzdelka}</td><td>${n.imeIzdelka}</td>
-        <td>${n.kolicina}</td><td>${n.zaloga}</td><td>${n.status}</td>`;
-      tbody.appendChild(row);
+  loginBtn.onclick = () => {
+    const user = document.getElementById('username').value.trim();
+    const pass = document.getElementById('password').value;
+    if(users[user] && users[user] === pass) {
+      localStorage.setItem('loggedIn', 'true');
+      showApp();
+      loginMsg.textContent = '';
+    } else {
+      loginMsg.textContent = "Napačno uporabniško ime ali geslo";
+    }
+  };
+
+  document.getElementById('logoutBtn').onclick = () => {
+    localStorage.removeItem('loggedIn');
+    showLogin();
+  };
+
+  // --- IndexedDB ---
+  let db;
+  const req = indexedDB.open("3dNarocilaDB", 1);
+  req.onupgradeneeded = e => {
+    db = e.target.result;
+    if(!db.objectStoreNames.contains("narocila")) {
+      db.createObjectStore("narocila", { keyPath: "id", autoIncrement: true });
+    }
+  };
+  req.onsuccess = e => {
+    db = e.target.result;
+    loadOrders();
+  };
+  req.onerror = e => console.error("Napaka IndexedDB:", e);
+
+  const form = document.getElementById('orderForm');
+  const tbody = document.getElementById('ordersTableBody');
+
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+
+    const naročilo = {
+      ime: form.ime.value.trim(),
+      priimek: form.priimek.value.trim(),
+      email: form.email.value.trim(),
+      telefon: form.telefon.value.trim(),
+      stIzdelka: form.stIzdelka.value.trim(),
+      imeIzdelka: form.imeIzdelka.value.trim(),
+      kolicina: parseInt(form.kolicina.value),
+      sodelavec: form.sodelavec.value
+    };
+
+    // Shrani naročilo v IndexedDB
+    const tx = db.transaction("narocila", "readwrite");
+    tx.objectStore("narocila").add(naročilo);
+    tx.oncomplete = () => {
+      loadOrders();
+      alert("Naročilo dodano!");
+      form.reset();
+
+      // Pošlji email sodelavcu z naročilom
+      sendEmail(naročilo);
+    };
+    tx.onerror = () => alert("Napaka pri shranjevanju naročila!");
+  });
+
+  function loadOrders() {
+    const tx = db.transaction("narocila", "readonly");
+    const store = tx.objectStore("narocila");
+    const req = store.getAll();
+    req.onsuccess = () => {
+      tbody.innerHTML = "";
+      req.result.forEach((n, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${i+1}</td><td>${n.ime}</td><td>${n.priimek}</td><td>${n.email}</td><td>${n.telefon}</td>
+          <td>${n.stIzdelka}</td><td>${n.imeIzdelka}</td><td>${n.kolicina}</td><td>${n.sodelavec}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    };
+  }
+
+  function sendEmail(order) {
+    const templateParams = {
+      ime: order.ime,
+      priimek: order.priimek,
+      email: order.email,
+      telefon: order.telefon,
+      stIzdelka: order.stIzdelka,
+      imeIzdelka: order.imeIzdelka,
+      kolicina: order.kolicina,
+      sodelavec_email: order.sodelavec
+    };
+
+    emailjs.send('narocila.3d', 'template_a6h5vjp', templateParams)
+    .then(function(response) {
+       console.log('Email uspešno poslan!', response.status, response.text);
+    }, function(error) {
+       console.error('Napaka pri pošiljanju emaila:', error);
     });
   }
-
-  document.getElementById("prijavaBtn").addEventListener("click", () => {
-    const email = document.getElementById("emailLogin").value;
-    const geslo = document.getElementById("gesloLogin").value;
-    prijava(email, geslo);
-  });
-
-  document.getElementById("oddajNarociloBtn").addEventListener("click", () => {
-    const user = auth.currentUser;
-    if (!user) {
-      alert("Najprej se prijavi!");
-      return;
-    }
-    const narocilo = {
-      uid: user.uid,
-      ime: document.getElementById("ime").value,
-      priimek: document.getElementById("priimek").value,
-      email: document.getElementById("email").value,
-      telefon: document.getElementById("telefon").value,
-      stIzdelka: document.getElementById("stIzdelka").value,
-      imeIzdelka: document.getElementById("imeIzdelka").value,
-      kolicina: document.getElementById("kolicina").value,
-      zaloga: document.getElementById("zaloga").value,
-      status: document.getElementById("statusNarocila").value
-    };
-    dodajNarocilo(narocilo);
-  });
-
-  onAuthStateChanged(auth, user => {
-    if (user) {
-      document.getElementById("loginContainer").classList.remove("visible");
-      document.getElementById("appContainer").classList.add("visible");
-      naloziNarocila();
-    }
-  });
 </script>
+
 </body>
 </html>
+
