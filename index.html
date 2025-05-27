@@ -141,7 +141,6 @@
       stIzdelka: form.stIzdelka.value.trim(),
       imeIzdelka: form.imeIzdelka.value.trim(),
       kolicina: parseInt(form.kolicina.value),
-      sodelavec: form.sodelavec.value
     };
 
     // Shrani naročilo v IndexedDB
@@ -168,7 +167,7 @@
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${i+1}</td><td>${n.ime}</td><td>${n.priimek}</td><td>${n.email}</td><td>${n.telefon}</td>
-          <td>${n.stIzdelka}</td><td>${n.imeIzdelka}</td><td>${n.kolicina}</td><td>${n.sodelavec}</td>
+          <td>${n.stIzdelka}</td><td>${n.imeIzdelka}</td><td>${n.kolicina}</td>
         `;
         tbody.appendChild(tr);
       });
