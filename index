@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Naročila – 3D DEMO</title>
+<style>
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(145deg, #0f0f0f, #1c1c1c);
+    color: #eee;
+    perspective: 1000px;
+  }
+  .container {
+    max-width: 700px;
+    margin: 30px auto;
+    background: rgba(30, 30, 30, 0.9);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    transform: rotateX(2deg);
+  }
+  h1, h2 {
+    text-align: center;
+  }
+  form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  form input, form select {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background: #222;
+    color: #eee;
+  }
+  form button {
+    grid-column: 1 / -1;
+    background: #0d6efd;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+  }
+  th, td {
+    border: 1px solid #444;
+    padding: 8px;
+  }
+  th {
+    background: #0d6efd;
+  }
+  #loginContainer, #appContainer {
+    display: none;
+  }
+  .visible {
+    display: block;
+  }
+</style>
+</head>
+<body>
+
+<div class="container visible" id="loginContainer">
+  <h1>Prijava</h1>
+  <form id="loginForm">
+    <input type="text" id="username" placeholder="Uporabniško ime" required />
+    <input type="password" id="password" placeholder="Geslo" required />
+    <button type="submit">Prijava</button>
+  </form>
+</div>
+
+<div class="container" id="appContainer">
+  <h1>Dobrodošel, <span id="userDisplay"></span></h1>
+  <h2>Dodaj naročilo</h2>
+  <form id="orderForm">
+    <input type="text" placeholder="Ime" id="ime" required />
+    <input type="text" placeholder="Priimek" id="priimek" required />
+    <input type="email" placeholder="Email" id="email" required />
+    <input type="tel" placeholder="Telefon" id="telefon" required />
+    <input type="text" placeholder="Št. izd." id="stIzdelka" required />
+    <input type="text" placeholder="Ime izdelka" id="imeIzdelka" required />
+    <input type="number" placeholder="Količina" id="kolicina" required />
+    <input type="number" placeholder="Zaloga" id="zaloga" required />
+    <select id="statusNarocila">
+      <option value="Novo">Novo</option>
+      <option value="V obdelavi">V obdelavi</option>
+      <option value="Zaključeno">Zaključeno</option>
+    </select>
+    <button type="submit">Shrani & Generiraj račun</button>
+  </form>
+
+  <h2>Moja naročila</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Ime</th>
+        <th>Priimek</th>
+        <th>Email</th>
+        <th>Telefon</th>
+        <th>Št. izd.</th>
+        <th>Izdelek</th>
+        <th>Količina</th>
+        <th>Zaloga</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="ordersTableBody"></tbody>
+  </table>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  const users = [
+    { username: "ana", password: "geslo1", name: "Ana Novak" },
+    { username: "jure", password: "geslo2", name: "Jure Kovač" }
+  ];
+
+  let currentUser = null;
+
+  document.getElementById("loginForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const u = document.getElementById("username").value.trim();
+    const p = document.getElementById("password").value.trim();
+    const user = users.find(u1 => u1.username === u && u1.password === p);
+    if (user) {
+      currentUser = user;
+      document.getElementById("userDisplay").textContent = user.name;
+      document.getElementById("loginContainer").classList.remove("visible");
+      document.getElementById("appContainer").classList.add("visible");
+      naloziNarocila();
+    } else {
+      alert("Napačno uporabniško ime ali geslo!");
+    }
+  });
+
+  // IndexedDB za lokalno shranjevanje naročil
+  let db;
+  const dbReq = indexedDB.open("NarocilaDB", 1);
+  dbReq.onupgradeneeded = e => {
+    db = e.target.result;
+    db.createObjectStore("narocila", { keyPath: "id", autoIncrement: true });
+  };
+  dbReq.onsuccess = e => db = e.target.result;
+
+  document.getElementById("orderForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const naročilo = {
+      user: currentUser.username,
+      ime: ime.value,
+      priimek: priimek.value,
+      email: email.value,
+      telefon: telefon.value,
+      stIzdelka: stIzdelka.value,
+      imeIzdelka: imeIzdelka.value,
+      kolicina: kolicina.value,
+      zaloga: zaloga.value,
+      status: statusNarocila.value
+    };
+    const tx = db.transaction("narocila", "readwrite");
+    tx.objectStore("narocila").add(naročilo);
+    tx.oncomplete = () => {
+      naloziNarocila();
+      generirajRacun(naročilo);
+      orderForm.reset();
+    };
+  });
+
+  function naloziNarocila() {
+    const tx = db.transaction("narocila", "readonly");
+    const store = tx.objectStore("narocila");
+    const req = store.getAll();
+    req.onsuccess = () => {
+      const moja = req.result.filter(n => n.user === currentUser.username);
+      const tbody = document.getElementById("ordersTableBody");
+      tbody.innerHTML = "";
+      moja.forEach((n, i) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>${i+1}</td><td>${n.ime}</td><td>${n.priimek}</td><td>${n.email}</td>
+          <td>${n.telefon}</td><td>${n.stIzdelka}</td><td>${n.imeIzdelka}</td>
+          <td>${n.kolicina}</td><td>${n.zaloga}</td><td>${n.status}</td>`;
+        tbody.appendChild(row);
+      });
+    };
+  }
+
+  async function generirajRacun(n) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.text(`RAČUN ZA NAROČILO`, 20, 20);
+    doc.text(`Ime: ${n.ime} ${n.priimek}`, 20, 40);
+    doc.text(`Izdelek: ${n.imeIzdelka}`, 20, 50);
+    doc.text(`Količina: ${n.kolicina}`, 20, 60);
+    doc.text(`Email: ${n.email}`, 20, 70);
+    doc.text(`Telefon: ${n.telefon}`, 20, 80);
+    doc.text(`Hvala za naročilo!`, 20, 100);
+    doc.save(`racun-${Date.now()}.pdf`);
+  }
+</script>
+</body>
+</html>
