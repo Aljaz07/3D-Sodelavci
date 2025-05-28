@@ -181,7 +181,7 @@
       document.querySelectorAll('.product-row').forEach(row => {
         const productName = row.querySelector('.product-name').value;
         const quantity = row.querySelector('.quantity').value;
-        data.izdelki.push({ productNumber, productName, quantity });
+        data.izdelki.push({ productName, quantity });
       });
 
       generirajPDF(data);
