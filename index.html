@@ -84,9 +84,13 @@
   </div>
 
   <div class="container hidden" id="order-container">
+
     <h2>Oddaj naročilo</h2>
+
     <form id="order-form">
-      <input type="hidden" id="order-number" />
+
+      <label>Št. računa:</label>
+      <input type="text" id="order-number" readonly/>
 
       <label>Ime in priimek:</label>
       <input type="text" id="full-name" required />
@@ -121,6 +125,7 @@
       </div>
 
       <button type="button" onclick="dodajIzdelek()">Dodaj izdelek</button>
+      <button type="button" onclick="ponastaviObrazec()">Počisti obrazec</button>
       <button type="submit">Generiraj PDF račun</button>
     </form>
   </div>
@@ -156,11 +161,39 @@
       if (USERS[u] === p) {
         loginContainer.classList.add('hidden');
         orderContainer.classList.remove('hidden');
+        nastaviStevilkoRacuna();
       } else {
         alert('Napačno uporabniško ime ali geslo!');
       }
     }
-
+ function nastaviStevilkoRacuna() {
+    const stevilka = "2025-000" + orderCounter;
+    document.getElementById('order-number').value = stevilka;
+  }
+  function ponastaviObrazec() {
+    document.getElementById('order-form').reset();
+    document.getElementById('products-container').innerHTML = `
+      <div class="product-row">
+        <label>Ime izdelka:</label>
+        <select class="product-name" required>
+          <option value="">Izberi izdelek …</option>
+          <option value="Pokrovček za pločevinke - M">Pokrovček za pločevinke - M</option>
+          <option value="Pokrovček za pločevinke - S">Pokrovček za pločevinke - S</option>
+          <option value="Pokrovček za silikonske tube">Pokrovček za silikonske tube</option>
+          <option value="Obesek za ključe - QR CODE">Obesek za ključe - QR CODE</option>
+          <option value="Obesek za ključe - RAZNI DIZ.">Obesek za ključe - RAZNI DIZ.</option>
+          <option value="Ovitek za telefon - 4,6'-5,5'">Ovitek za telefon - 4,6"-5,5"</option>
+          <option value="Ovitek za telefon - 5,5'-6,7'">Ovitek za telefon - 5,5"-6,7"</option>
+          <option value="Ovitek za telefon - 6,7'-7,6'">Ovitek za telefon - 6,7"-7,6"</option>
+          <option value="Dodatki in dizajn na ovitkih">Dodatki in dizajn na ovitkih</option>
+        </select>
+        <div class="price-display"></div>
+        <label>Količina:</label>
+        <input type="number" class="quantity" min="1" required />
+      </div>
+    `;
+    nastaviStevilkoRacuna();
+  }
     function prikaziCeno(event) {
       const select = event.target;
       const cenaDiv = select.parentElement.querySelector('.price-display');
