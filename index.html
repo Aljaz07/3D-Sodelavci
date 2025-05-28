@@ -139,15 +139,15 @@
     let orderCounter = 1;
 
     const productPrices = {
-      "Pokrovček za pločevinke - M": 2.5,
-      "Pokrovček za pločevinke - S": 2.0,
-      "Pokrovček za silikonske tube": 3.0,
-      "Obesek za ključe - QR CODE": 5.0,
-      "Obesek za ključe - RAZNI DIZ.": 4.5,
-      "Ovitek za telefon - 4,6'-5,5'": 10.0,
-      "Ovitek za telefon - 5,5'-6,7'": 12.0,
-      "Ovitek za telefon - 6,7'-7,6'": 15.0,
-      "Dodatki in dizajn na ovitkih": 7.0
+      "Pokrovček za pločevinke - M": 2.0,
+      "Pokrovček za pločevinke - S": 1.5,
+      "Pokrovček za silikonske tube": 1.5,
+      "Obesek za ključe - QR CODE": 2.0,
+      "Obesek za ključe - RAZNI DIZ.": 2.0,
+      "Ovitek za telefon - 4,6'-5,5'": 4.0,
+      "Ovitek za telefon - 5,5'-6,7'": 6.0,
+      "Ovitek za telefon - 6,7'-7,6'": 8.0,
+      "Dodatki in dizajn na ovitkih": 1.0
     };
 
     function login() {
@@ -235,8 +235,6 @@
       const datumIzdaje = new Date();
       const datumIzdajeStr = datumIzdaje.toLocaleDateString('sl-SI');
       const datumPlacila = new Date(datumIzdaje);
-      datumPlacila.setDate(datumPlacila.getDate() + 14);
-      const datumPlacilaStr = datumPlacila.toLocaleDateString('sl-SI');
 
       // Pripravimo tabelo za pdfMake
       const tabelaPodatki = [
@@ -275,11 +273,7 @@
             columns: [
               [
                 { text: 'Prodajalec:', bold: true },
-                { text: '3D Print Store' },
-                { text: 'Trg svobode 10' },
-                { text: '1000 Ljubljana' },
-                { text: 'Telefon: 031 123 456' },
-                { text: 'Email: info@3dprintstore.si' }
+                { text: '3D Printing' },
               ],
               [
                 { text: 'Kupec:', bold: true },
@@ -290,7 +284,6 @@
               [
                 { text: 'Št. računa: ' + stevilkaRacuna, bold: true },
                 { text: 'Datum izdaje: ' + datumIzdajeStr },
-                { text: 'Datum plačila: ' + datumPlacilaStr }
               ]
             ]
           },
