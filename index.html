@@ -58,8 +58,17 @@
     .product-row {
       border: 1px dashed rgba(255,255,255,0.3);
       border-radius: 8px;
-      padding: 10px;
+      padding: 15px 10px;
       margin-top: 10px;
+      position: relative;
+    }
+    .price-display {
+      position: absolute;
+      right: 10px;
+      top: 20px;
+      color: #34ebb7;
+      font-weight: bold;
+      font-size: 1em;
     }
   </style>
 </head>
@@ -104,6 +113,7 @@
             <option value="Ovitek za telefon - 6,7'-7,6'">Ovitek za telefon - 6,7"-7,6"</option>
             <option value="Dodatki in dizajn na ovitkih">Dodatki in dizajn na ovitkih</option>
           </select>
+          <div class="price-display"></div>
 
           <label>Količina:</label>
           <input type="number" class="quantity" min="1" required />
@@ -128,6 +138,18 @@
     const orderContainer = document.getElementById('order-container');
     let orderCounter = 1;
 
+    const productPrices = {
+      "Pokrovček za pločevinke - M": 2.0,
+      "Pokrovček za pločevinke - S": 1.5,
+      "Pokrovček za silikonske tube": 1.5,
+      "Obesek za ključe - QR CODE": 2.0,
+      "Obesek za ključe - RAZNI DIZ.": 2.0,
+      "Ovitek za telefon - 4,6'-5,5'": 4.0,
+      "Ovitek za telefon - 5,5'-6,7'": 6.0,
+      "Ovitek za telefon - 6,7'-7,6'": 8.0,
+      "Dodatki in dizajn na ovitkih": 1.0
+    };
+
     function login() {
       const u = document.getElementById('username').value.trim();
       const p = document.getElementById('password').value;
@@ -139,14 +161,28 @@
       }
     }
 
+    function prikaziCeno(event) {
+      const select = event.target;
+      const cenaDiv = select.parentElement.querySelector('.price-display');
+      const izbranIzdelek = select.value;
+      if (productPrices[izbranIzdelek]) {
+        cenaDiv.textContent = `Cena: ${productPrices[izbranIzdelek].toFixed(2)} €`;
+      } else {
+        cenaDiv.textContent = '';
+      }
+    }
+
+    function dodajListenerCenaZaSelect(selectElement) {
+      selectElement.addEventListener('change', prikaziCeno);
+    }
+
     function dodajIzdelek() {
       const container = document.getElementById('products-container');
       const novaVrstica = document.createElement('div');
       novaVrstica.classList.add('product-row');
       novaVrstica.innerHTML = `
-
         <label>Ime izdelka:</label>
-        <select class="product-name">
+        <select class="product-name" required>
           <option value="">Izberi izdelek …</option>
           <option value="Pokrovček za pločevinke - M">Pokrovček za pločevinke - M</option>
           <option value="Pokrovček za pločevinke - S">Pokrovček za pločevinke - S</option>
@@ -158,74 +194,126 @@
           <option value="Ovitek za telefon - 6,7'-7,6'">Ovitek za telefon - 6,7"-7,6"</option>
           <option value="Dodatki in dizajn na ovitkih">Dodatki in dizajn na ovitkih</option>
         </select>
-
+        <div class="price-display"></div>
         <label>Količina:</label>
         <input type="number" class="quantity" min="1" required />
       `;
       container.appendChild(novaVrstica);
+
+      // Dodamo event listener na nov select za prikaz cene
+      const noviSelect = novaVrstica.querySelector('select.product-name');
+      dodajListenerCenaZaSelect(noviSelect);
     }
 
-    document.getElementById('order-form').addEventListener('submit', e => {
+    // Dodamo event listener na prvotni select
+    document.querySelectorAll('select.product-name').forEach(dodajListenerCenaZaSelect);
+
+    // PDF generiranje po oddaji obrazca
+    document.getElementById('order-form').addEventListener('submit', function(e) {
       e.preventDefault();
-      const ordNo = 'ORD-' + String(orderCounter++).padStart(4,'0');
-      document.getElementById('order-number').value = ordNo;
 
-      const data = {
-        orderNumber: ordNo,
-        fullName: document.getElementById('full-name').value,
-        email: document.getElementById('email').value,
-        phone: document.getElementById('phone').value,
-        izdelki: []
-      };
+      // Preberemo podatke iz obrazca
+      const imePriimek = document.getElementById('full-name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const telefon = document.getElementById('phone').value.trim();
 
-      document.querySelectorAll('.product-row').forEach(row => {
-        const productName = row.querySelector('.product-name').value;
-        const quantity = row.querySelector('.quantity').value;
-        data.izdelki.push({ productName, quantity });
-      });
+      // Pridobimo izdelke in količine
+      const products = [];
+      const rows = document.querySelectorAll('.product-row');
+      for (const row of rows) {
+        const izdelek = row.querySelector('select.product-name').value;
+        const kolicina = parseInt(row.querySelector('input.quantity').value);
+        if (!izdelek || isNaN(kolicina) || kolicina < 1) {
+          alert('Prosim, izpolnite vse izdelke in količine pravilno.');
+          return;
+        }
+        products.push({ name: izdelek, quantity: kolicina, price: productPrices[izdelek] });
+      }
 
-      generirajPDF(data);
-      e.target.reset();
-      // Po resetu ohrani eno vrstico za izdelke
-      const container = document.getElementById('products-container');
-      container.innerHTML = '';
-      dodajIzdelek();
-    });
+      // Številka računa
+      const stevilkaRacuna = "2025-000" + orderCounter++;
+      const datumIzdaje = new Date();
+      const datumIzdajeStr = datumIzdaje.toLocaleDateString('sl-SI');
+      const datumPlacila = new Date(datumIzdaje);
 
-    function generirajPDF(data) {
-      const body = [
-        ['Številka naročila:', data.orderNumber],
-        ['Ime in priimek:', data.fullName],
-        ['Email:', data.email],
-        ['Telefonska:', data.phone]
+      // Pripravimo tabelo za pdfMake
+      const tabelaPodatki = [
+        [{ text: 'Izdelek', bold: true, fillColor: '#eeeeee' },
+         { text: 'Količina', bold: true, fillColor: '#eeeeee', alignment: 'right' },
+         { text: 'Cena/kom', bold: true, fillColor: '#eeeeee', alignment: 'right' },
+         { text: 'Skupaj', bold: true, fillColor: '#eeeeee', alignment: 'right' }]
       ];
 
-      data.izdelki.forEach((izdelek, i) => {
-        body.push(['— Izdelek ' + (i+1), '']);
-        body.push(['Ime izdelka:', izdelek.productName]);
-        body.push(['Količina:', izdelek.quantity]);
-      });
+      let skupnaCena = 0;
+      for (const p of products) {
+        const cenaSkupaj = p.price * p.quantity;
+        skupnaCena += cenaSkupaj;
+        tabelaPodatki.push([
+          p.name,
+          { text: p.quantity.toString(), alignment: 'right' },
+          { text: p.price.toFixed(2) + ' €', alignment: 'right' },
+          { text: cenaSkupaj.toFixed(2) + ' €', alignment: 'right' }
+        ]);
+      }
 
+      // Dodamo vrstico za skupno vsoto
+      tabelaPodatki.push([
+        { text: 'Skupaj', colSpan: 3, alignment: 'right', bold: true },
+        {}, {},
+        { text: skupnaCena.toFixed(2) + ' €', alignment: 'right', bold: true }
+      ]);
+
+      // Definicija PDF dokumenta
       const docDefinition = {
+        pageSize: 'A4',
+        pageMargins: [40, 60, 40, 60],
         content: [
-          { text: 'RAČUN', style: 'header', alignment: 'center' },
-          { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 2, lineColor: '#007bff' } ], margin: [0, 10, 0, 10] },
+          { text: 'RAČUN', style: 'header' },
           {
-            style: 'table',
-            table: { widths: ['*', '*'], body: body },
-            layout: 'lightHorizontalLines'
+            columns: [
+              [
+                { text: 'Prodajalec:', bold: true },
+                { text: '3D Printing' },
+              ],
+              [
+                { text: 'Kupec:', bold: true },
+                { text: imePriimek },
+                { text: 'Email: ' + email },
+                { text: 'Telefon: ' + telefon }
+              ],
+              [
+                { text: 'Št. računa: ' + stevilkaRacuna, bold: true },
+                { text: 'Datum izdaje: ' + datumIzdajeStr },
+              ]
+            ]
           },
-          { text: 'Hvala za vaše naročilo!', style: 'footer' }
+          { text: '\n' },
+          {
+            table: {
+              widths: ['*', 60, 80, 80],
+              body: tabelaPodatki
+            },
+            layout: {
+              fillColor: function (rowIndex) {
+                return (rowIndex === 0) ? '#eeeeee' : null;
+              }
+            }
+          },
+          { text: '\nHvala za vaše naročilo!', style: 'thanks' }
         ],
         styles: {
-          header: { fontSize: 24, bold: true, color: '#007bff' },
-          table: { margin: [0, 0, 0, 20] },
-          footer: { italics: true, alignment: 'center', margin: [0, 20, 0, 0] }
+          header: { fontSize: 22, bold: true, alignment: 'center', margin: [0, 0, 0, 10] },
+          thanks: { italics: true, fontSize: 14, alignment: 'center', margin: [0, 20, 0, 0] }
         },
-        defaultStyle: { font: 'Roboto' }
+        defaultStyle: {
+          font: 'Roboto'
+        }
       };
-      pdfMake.createPdf(docDefinition).download(`racun_${data.orderNumber}.pdf`);
-    }
+
+      pdfMake.createPdf(docDefinition).download(stevilkaRacuna + '.pdf');
+    });
+
   </script>
+
 </body>
 </html>
