@@ -83,104 +83,22 @@
     <button onclick="login()">Prijavi se</button>
   </div>
 
-  <div class="container hidden" id="order-container">
-    <h2>Oddaj naročilo</h2>
-    <form id="order-form">
-      <input type="hidden" id="order-number" />
+  <h2>Oddaj naročilo</h2>
+  <form id="order-form">
+    <label>Št. računa:</label>
+    <input type="text" id="order-number" readonly />
 
-      <label>Ime in priimek:</label>
-      <input type="text" id="full-name" required />
+    <label>Ime in priimek:</label>
+    <input type="text" id="full-name" required />
 
-      <label>Email:</label>
-      <input type="email" id="email" required />
+    <label>Email:</label>
+    <input type="email" id="email" required />
 
-      <label>Telefonska:</label>
-      <input type="tel" id="phone" required />
+    <label>Telefonska:</label>
+    <input type="tel" id="phone" required />
 
-      <div id="products-container">
-        <div class="product-row">
-
-          <label>Ime izdelka:</label>
-          <select class="product-name" required>
-            <option value="">Izberi izdelek …</option>
-            <option value="Pokrovček za pločevinke - M">Pokrovček za pločevinke - M</option>
-            <option value="Pokrovček za pločevinke - S">Pokrovček za pločevinke - S</option>
-            <option value="Pokrovček za silikonske tube">Pokrovček za silikonske tube</option>
-            <option value="Obesek za ključe - QR CODE">Obesek za ključe - QR CODE</option>
-            <option value="Obesek za ključe - RAZNI DIZ.">Obesek za ključe - RAZNI DIZ.</option>
-            <option value="Ovitek za telefon - 4,6'-5,5'">Ovitek za telefon - 4,6"-5,5"</option>
-            <option value="Ovitek za telefon - 5,5'-6,7'">Ovitek za telefon - 5,5"-6,7"</option>
-            <option value="Ovitek za telefon - 6,7'-7,6'">Ovitek za telefon - 6,7"-7,6"</option>
-            <option value="Dodatki in dizajn na ovitkih">Dodatki in dizajn na ovitkih</option>
-          </select>
-          <div class="price-display"></div>
-
-          <label>Količina:</label>
-          <input type="number" class="quantity" min="1" required />
-        </div>
-      </div>
-
-      <button type="button" onclick="dodajIzdelek()">Dodaj izdelek</button>
-      <button type="submit">Generiraj PDF račun</button>
-    </form>
-  </div>
-
-  <!-- pdfMake za podporo šumnikov -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
-
-  <!-- vanilla-tilt za 3D efekt -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.7.0/vanilla-tilt.min.js"></script>
-
-  <script>
-    const USERS = { aljaz: 'loveme', rebeka: 'mihecova1' , miha: '3dprinter' };
-    const loginContainer = document.getElementById('login-container');
-    const orderContainer = document.getElementById('order-container');
-    let orderCounter = 1;
-
-    const productPrices = {
-      "Pokrovček za pločevinke - M": 2.0,
-      "Pokrovček za pločevinke - S": 1.5,
-      "Pokrovček za silikonske tube": 1.5,
-      "Obesek za ključe - QR CODE": 2.0,
-      "Obesek za ključe - RAZNI DIZ.": 2.0,
-      "Ovitek za telefon - 4,6'-5,5'": 4.0,
-      "Ovitek za telefon - 5,5'-6,7'": 6.0,
-      "Ovitek za telefon - 6,7'-7,6'": 8.0,
-      "Dodatki in dizajn na ovitkih": 1.0
-    };
-
-    function login() {
-      const u = document.getElementById('username').value.trim();
-      const p = document.getElementById('password').value;
-      if (USERS[u] === p) {
-        loginContainer.classList.add('hidden');
-        orderContainer.classList.remove('hidden');
-      } else {
-        alert('Napačno uporabniško ime ali geslo!');
-      }
-    }
-
-    function prikaziCeno(event) {
-      const select = event.target;
-      const cenaDiv = select.parentElement.querySelector('.price-display');
-      const izbranIzdelek = select.value;
-      if (productPrices[izbranIzdelek]) {
-        cenaDiv.textContent = `Cena: ${productPrices[izbranIzdelek].toFixed(2)} €`;
-      } else {
-        cenaDiv.textContent = '';
-      }
-    }
-
-    function dodajListenerCenaZaSelect(selectElement) {
-      selectElement.addEventListener('change', prikaziCeno);
-    }
-
-    function dodajIzdelek() {
-      const container = document.getElementById('products-container');
-      const novaVrstica = document.createElement('div');
-      novaVrstica.classList.add('product-row');
-      novaVrstica.innerHTML = `
+    <div id="products-container">
+      <div class="product-row">
         <label>Ime izdelka:</label>
         <select class="product-name" required>
           <option value="">Izberi izdelek …</option>
@@ -197,123 +115,63 @@
         <div class="price-display"></div>
         <label>Količina:</label>
         <input type="number" class="quantity" min="1" required />
-      `;
-      container.appendChild(novaVrstica);
+      </div>
+    </div>
 
-      // Dodamo event listener na nov select za prikaz cene
-      const noviSelect = novaVrstica.querySelector('select.product-name');
-      dodajListenerCenaZaSelect(noviSelect);
+    <button type="button" onclick="dodajIzdelek()">Dodaj izdelek</button>
+    <button type="button" onclick="ponastaviObrazec()">Počisti obrazec</button>
+    <button type="submit">Generiraj PDF račun</button>
+  </form>
+</div>
+
+<script>
+  // Posodobi številko računa pri prikazu obrazca
+  function nastaviStevilkoRacuna() {
+    const stevilka = "2025-000" + orderCounter;
+    document.getElementById('order-number').value = stevilka;
+  }
+
+  // Ponastavi obrazec
+  function ponastaviObrazec() {
+    document.getElementById('order-form').reset();
+    document.getElementById('products-container').innerHTML = `
+      <div class="product-row">
+        <label>Ime izdelka:</label>
+        <select class="product-name" required>
+          <option value="">Izberi izdelek …</option>
+          <option value="Pokrovček za pločevinke - M">Pokrovček za pločevinke - M</option>
+          <option value="Pokrovček za pločevinke - S">Pokrovček za pločevinke - S</option>
+          <option value="Pokrovček za silikonske tube">Pokrovček za silikonske tube</option>
+          <option value="Obesek za ključe - QR CODE">Obesek za ključe - QR CODE</option>
+          <option value="Obesek za ključe - RAZNI DIZ.">Obesek za ključe - RAZNI DIZ.</option>
+          <option value="Ovitek za telefon - 4,6'-5,5'">Ovitek za telefon - 4,6"-5,5"</option>
+          <option value="Ovitek za telefon - 5,5'-6,7'">Ovitek za telefon - 5,5"-6,7"</option>
+          <option value="Ovitek za telefon - 6,7'-7,6'">Ovitek za telefon - 6,7"-7,6"</option>
+          <option value="Dodatki in dizajn na ovitkih">Dodatki in dizajn na ovitkih</option>
+        </select>
+        <div class="price-display"></div>
+        <label>Količina:</label>
+        <input type="number" class="quantity" min="1" required />
+      </div>
+    `;
+
+    // Znova dodaj listener za prikaz cene
+    const noviSelect = document.querySelector('select.product-name');
+    dodajListenerCenaZaSelect(noviSelect);
+
+    // Ponastavi tudi številko računa
+    nastaviStevilkoRacuna();
+  }
+
+  // Ob prijavi nastavi številko računa
+  function login() {
+    const u = document.getElementById('username').value.trim();
+    const p = document.getElementById('password').value;
+    if (USERS[u] === p) {
+      loginContainer.classList.add('hidden');
+      orderContainer.classList.remove('hidden');
+      nastaviStevilkoRacuna();
+    } else {
+      alert('Napačno uporabniško ime ali geslo!');
     }
-
-    // Dodamo event listener na prvotni select
-    document.querySelectorAll('select.product-name').forEach(dodajListenerCenaZaSelect);
-
-    // PDF generiranje po oddaji obrazca
-    document.getElementById('order-form').addEventListener('submit', function(e) {
-      e.preventDefault();
-
-      // Preberemo podatke iz obrazca
-      const imePriimek = document.getElementById('full-name').value.trim();
-      const email = document.getElementById('email').value.trim();
-      const telefon = document.getElementById('phone').value.trim();
-
-      // Pridobimo izdelke in količine
-      const products = [];
-      const rows = document.querySelectorAll('.product-row');
-      for (const row of rows) {
-        const izdelek = row.querySelector('select.product-name').value;
-        const kolicina = parseInt(row.querySelector('input.quantity').value);
-        if (!izdelek || isNaN(kolicina) || kolicina < 1) {
-          alert('Prosim, izpolnite vse izdelke in količine pravilno.');
-          return;
-        }
-        products.push({ name: izdelek, quantity: kolicina, price: productPrices[izdelek] });
-      }
-
-      // Številka računa
-      const stevilkaRacuna = "2025-000" + orderCounter++;
-      const datumIzdaje = new Date();
-      const datumIzdajeStr = datumIzdaje.toLocaleDateString('sl-SI');
-      const datumPlacila = new Date(datumIzdaje);
-
-      // Pripravimo tabelo za pdfMake
-      const tabelaPodatki = [
-        [{ text: 'Izdelek', bold: true, fillColor: '#eeeeee' },
-         { text: 'Količina', bold: true, fillColor: '#eeeeee', alignment: 'right' },
-         { text: 'Cena/kom', bold: true, fillColor: '#eeeeee', alignment: 'right' },
-         { text: 'Skupaj', bold: true, fillColor: '#eeeeee', alignment: 'right' }]
-      ];
-
-      let skupnaCena = 0;
-      for (const p of products) {
-        const cenaSkupaj = p.price * p.quantity;
-        skupnaCena += cenaSkupaj;
-        tabelaPodatki.push([
-          p.name,
-          { text: p.quantity.toString(), alignment: 'right' },
-          { text: p.price.toFixed(2) + ' €', alignment: 'right' },
-          { text: cenaSkupaj.toFixed(2) + ' €', alignment: 'right' }
-        ]);
-      }
-
-      // Dodamo vrstico za skupno vsoto
-      tabelaPodatki.push([
-        { text: 'Skupaj', colSpan: 3, alignment: 'right', bold: true },
-        {}, {},
-        { text: skupnaCena.toFixed(2) + ' €', alignment: 'right', bold: true }
-      ]);
-
-      // Definicija PDF dokumenta
-      const docDefinition = {
-        pageSize: 'A4',
-        pageMargins: [40, 60, 40, 60],
-        content: [
-          { text: 'RAČUN', style: 'header' },
-          {
-            columns: [
-              [
-                { text: 'Prodajalec:', bold: true },
-                { text: '3D Printing' },
-              ],
-              [
-                { text: 'Kupec:', bold: true },
-                { text: imePriimek },
-                { text: 'Email: ' + email },
-                { text: 'Telefon: ' + telefon }
-              ],
-              [
-                { text: 'Št. računa: ' + stevilkaRacuna, bold: true },
-                { text: 'Datum izdaje: ' + datumIzdajeStr },
-              ]
-            ]
-          },
-          { text: '\n' },
-          {
-            table: {
-              widths: ['*', 60, 80, 80],
-              body: tabelaPodatki
-            },
-            layout: {
-              fillColor: function (rowIndex) {
-                return (rowIndex === 0) ? '#eeeeee' : null;
-              }
-            }
-          },
-          { text: '\nHvala za vaše naročilo!', style: 'thanks' }
-        ],
-        styles: {
-          header: { fontSize: 22, bold: true, alignment: 'center', margin: [0, 0, 0, 10] },
-          thanks: { italics: true, fontSize: 14, alignment: 'center', margin: [0, 20, 0, 0] }
-        },
-        defaultStyle: {
-          font: 'Roboto'
-        }
-      };
-
-      pdfMake.createPdf(docDefinition).download(stevilkaRacuna + '.pdf');
-    });
-
-  </script>
-
-</body>
-</html>
+  }
