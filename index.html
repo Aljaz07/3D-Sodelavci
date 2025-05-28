@@ -1,200 +1,187 @@
 <!DOCTYPE html>
 <html lang="sl">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>3D Naročila</title>
-<style>
-  body { background: #121212; color: #eee; font-family: sans-serif; padding: 20px;}
-  .container { max-width: 800px; margin: auto; background: #222; padding: 20px; border-radius: 10px;}
-  input, button, select { width: 100%; margin: 8px 0; padding: 10px; border-radius: 5px; border: none; }
-  button { background: #00cccc; color: black; font-weight: bold; cursor: pointer; }
-  button:hover { background: #00ffff; }
-  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-  th, td { border: 1px solid #444; padding: 8px; text-align: center; }
-  th { background: #00cccc; }
-  #loginSection, #appSection { display: none; }
-</style>
-<script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Naročila 3D Izdelkov</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #c6ffdd, #fbd786, #f7797d);
+      font-family: Arial, sans-serif;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      width: 350px;
+      background: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 30px;
+      text-align: center;
+      color: #fff;
+      transition: 0.3s;
+    }
+    .container h2 {
+      margin-bottom: 20px;
+    }
+    label, input, select, button {
+      display: block;
+      width: 100%;
+      margin-top: 10px;
+    }
+    input, select {
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      outline: none;
+    }
+    button {
+      background: #007bff;
+      border: none;
+      padding: 10px;
+      color: #fff;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
 </head>
 <body>
 
-<div class="container">
-
-  <div id="loginSection">
+  <div class="container" id="login-container" data-tilt data-tilt-max="10" data-tilt-speed="400">
     <h2>Prijava</h2>
-    <input id="username" placeholder="Uporabniško ime" />
-    <input id="password" type="password" placeholder="Geslo" />
-    <button id="loginBtn">Prijavi se</button>
-    <p id="loginMsg" style="color: red;"></p>
+    <label>Uporabniško ime:</label>
+    <input type="text" id="username" placeholder="npr. delavec1" />
+    <label>Geslo:</label>
+    <input type="password" id="password" placeholder="geslo" />
+    <button onclick="login()">Prijavi se</button>
   </div>
 
-  <div id="appSection">
-    <h1>3D Naročila</h1>
-    <form id="orderForm">
-      <input type="text" id="ime" placeholder="Ime" required />
-      <input type="text" id="priimek" placeholder="Priimek" required />
-      <input type="email" id="email" placeholder="Email" required />
-      <input type="tel" id="telefon" placeholder="Telefon" required />
-      <input type="text" id="stIzdelka" placeholder="Št. izdelka" required />
-      <input type="text" id="imeIzdelka" placeholder="Ime izdelka" required />
-      <input type="number" id="kolicina" placeholder="Količina" min="1" required />
-      <select id="sodelavec" required>
-        <option value="" disabled selected>Izberi sodelavca</option>
-        <option value="sodelavec1@example.com">Sodelavec 1</option>
-        <option value="sodelavec2@example.com">Sodelavec 2</option>
-        <option value="sodelavec3@example.com">Sodelavec 3</option>
+  <div class="container hidden" id="order-container">
+    <h2>Oddaj naročilo</h2>
+    <form id="order-form">
+      <input type="hidden" id="order-number" />
+
+      <label>Ime in priimek:</label>
+      <input type="text" id="full-name" required />
+
+      <label>Email:</label>
+      <input type="email" id="email" required />
+
+      <label>Telefonska:</label>
+      <input type="tel" id="phone" required />
+
+      <label>Številka izdelka:</label>
+      <input type="text" id="product-number" not required />
+
+      <label>Ime izdelka:</label>
+      <select id="product-name" required>
+        <option value="">Izberi izdelek …</option>
+        <option value="Izdelek A">Pokrovček za pločevinke - M</option>
+        <option value="Izdelek B">Pokrovček za pločevinke - S</option>
+        <option value="Izdelek C">Pokrovček za silikonske tube</option>
+        <option value="Izdelek D">Obesek za ključe - QR CODE</option>
+        <option value="Izdelek E">Obesek za ključe - RAZNI DIZ.</option>
+        <option value="Izdelek I">Ovitek za telefon - 4,6"-5,5"</option>
+        <option value="Izdelek G">Ovitek za telefon - 5,5"-6,7"</option>
+        <option value="Izdelek F">Ovitek za telefon - 6,7"-7,6"</option>
+        <option value="Izdelek H">Dodatki in dizajn na ovitkih</option>
       </select>
-      <button type="submit">Dodaj naročilo</button>
+
+      <label>Količina:</label>
+      <input type="number" id="quantity" min="1" required />
+
+      <button type="submit">Generiraj PDF račun</button>
     </form>
-
-    <table>
-      <thead>
-        <tr>
-          <th>#</th><th>Ime</th><th>Priimek</th><th>Email</th><th>Telefon</th>
-          <th>Št. izdelka</th><th>Ime izdelka</th><th>Količina</th>>
-        </tr>
-      </thead>
-      <tbody id="ordersTableBody"></tbody>
-    </table>
-
-    <button id="logoutBtn" style="margin-top:20px;">Odjava</button>
   </div>
 
-</div>
+  <!-- pdfMake za podporo šumnikov -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
 
-<script>
-  // Inicializiraj EmailJS
-  (function(){
-    emailjs.init("WnsQ-mdOuOtf2gtxc"); // Tukaj vstavi svoj user ID iz EmailJS
-  })();
+  <!-- vanilla-tilt za 3D efekt -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.7.0/vanilla-tilt.min.js"></script>
 
-  // --- Prijava ---
-  const loginSection = document.getElementById('loginSection');
-  const appSection = document.getElementById('appSection');
-  const loginBtn = document.getElementById('loginBtn');
-  const loginMsg = document.getElementById('loginMsg');
+  <script>
+    const USERS = { delavec1: 'geslo1', delavec2: 'geslo2' };
+    const loginContainer = document.getElementById('login-container');
+    const orderContainer = document.getElementById('order-container');
+    let orderCounter = 1;
 
-  const users = {
-    "aljaz": "loveme",
-    "admin": "admin123"
-  };
-
-  function showApp() {
-    loginSection.style.display = 'none';
-    appSection.style.display = 'block';
-  }
-  function showLogin() {
-    loginSection.style.display = 'block';
-    appSection.style.display = 'none';
-  }
-
-  if(localStorage.getItem('loggedIn') === 'true') {
-    showApp();
-  } else {
-    showLogin();
-  }
-
-  loginBtn.onclick = () => {
-    const user = document.getElementById('username').value.trim();
-    const pass = document.getElementById('password').value;
-    if(users[user] && users[user] === pass) {
-      localStorage.setItem('loggedIn', 'true');
-      showApp();
-      loginMsg.textContent = '';
-    } else {
-      loginMsg.textContent = "Napačno uporabniško ime ali geslo";
+    function login() {
+      const u = document.getElementById('username').value.trim();
+      const p = document.getElementById('password').value;
+      if (USERS[u] === p) {
+        loginContainer.classList.add('hidden');
+        orderContainer.classList.remove('hidden');
+      } else {
+        alert('Napačno uporabniško ime ali geslo!');
+      }
     }
-  };
 
-  document.getElementById('logoutBtn').onclick = () => {
-    localStorage.removeItem('loggedIn');
-    showLogin();
-  };
+    document.getElementById('order-form').addEventListener('submit', e => {
+      e.preventDefault();
+      const ordNo = 'ORD-' + String(orderCounter++).padStart(4,'0');
+      document.getElementById('order-number').value = ordNo;
 
-  // --- IndexedDB ---
-  let db;
-  const req = indexedDB.open("3dNarocilaDB", 1);
-  req.onupgradeneeded = e => {
-    db = e.target.result;
-    if(!db.objectStoreNames.contains("narocila")) {
-      db.createObjectStore("narocila", { keyPath: "id", autoIncrement: true });
-    }
-  };
-  req.onsuccess = e => {
-    db = e.target.result;
-    loadOrders();
-  };
-  req.onerror = e => console.error("Napaka IndexedDB:", e);
+      const data = {
+        orderNumber: ordNo,
+        fullName: document.getElementById('full-name').value,
+        email: document.getElementById('email').value,
+        phone: document.getElementById('phone').value,
+        productNumber: document.getElementById('product-number').value,
+        productName: document.getElementById('product-name').value,
+        quantity: document.getElementById('quantity').value
+      };
 
-  const form = document.getElementById('orderForm');
-  const tbody = document.getElementById('ordersTableBody');
-
-  form.addEventListener('submit', e => {
-    e.preventDefault();
-
-    const naročilo = {
-      ime: form.ime.value.trim(),
-      priimek: form.priimek.value.trim(),
-      email: form.email.value.trim(),
-      telefon: form.telefon.value.trim(),
-      stIzdelka: form.stIzdelka.value.trim(),
-      imeIzdelka: form.imeIzdelka.value.trim(),
-      kolicina: parseInt(form.kolicina.value),
-    };
-
-    // Shrani naročilo v IndexedDB
-    const tx = db.transaction("narocila", "readwrite");
-    tx.objectStore("narocila").add(naročilo);
-    tx.oncomplete = () => {
-      loadOrders();
-      alert("Naročilo dodano!");
-      form.reset();
-
-      // Pošlji email sodelavcu z naročilom
-      sendEmail(naročilo);
-    };
-    tx.onerror = () => alert("Napaka pri shranjevanju naročila!");
-  });
-
-  function loadOrders() {
-    const tx = db.transaction("narocila", "readonly");
-    const store = tx.objectStore("narocila");
-    const req = store.getAll();
-    req.onsuccess = () => {
-      tbody.innerHTML = "";
-      req.result.forEach((n, i) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${i+1}</td><td>${n.ime}</td><td>${n.priimek}</td><td>${n.email}</td><td>${n.telefon}</td>
-          <td>${n.stIzdelka}</td><td>${n.imeIzdelka}</td><td>${n.kolicina}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    };
-  }
-
-  function sendEmail(order) {
-    const templateParams = {
-      ime: order.ime,
-      priimek: order.priimek,
-      email: order.email,
-      telefon: order.telefon,
-      stIzdelka: order.stIzdelka,
-      imeIzdelka: order.imeIzdelka,
-      kolicina: order.kolicina,
-      sodelavec_email: order.sodelavec
-    };
-
-    emailjs.send('narocila.3d', 'template_a6h5vjp', templateParams)
-    .then(function(response) {
-       console.log('Email uspešno poslan!', response.status, response.text);
-    }, function(error) {
-       console.error('Napaka pri pošiljanju emaila:', error);
+      generirajPDF(data);
+      e.target.reset();
     });
-  }
-</script>
 
+    function generirajPDF(data) {
+      const docDefinition = {
+        content: [
+          { text: 'RAČUN', style: 'header', alignment: 'center' },
+          { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 2, lineColor: '#007bff' } ], margin: [0, 10, 0, 10] },
+          {
+            style: 'table',
+            table: {
+              widths: ['*', '*'],
+              body: [
+                ['Številka naročila:', data.orderNumber],
+                ['Ime in priimek:', data.fullName],
+                ['Email:', data.email],
+                ['Telefonska:', data.phone],
+                ['Št. izdelka:', data.productNumber],
+                ['Ime izdelka:', data.productName],
+                ['Količina:', data.quantity]
+              ]
+            },
+            layout: 'lightHorizontalLines'
+          },
+          { text: 'Hvala za vaše naročilo!', style: 'footer' }
+        ],
+        styles: {
+          header: { fontSize: 24, bold: true, color: '#007bff' },
+          table: { margin: [0, 0, 0, 20] },
+          footer: { italics: true, alignment: 'center', margin: [0, 20, 0, 0] }
+        },
+        defaultStyle: { font: 'Roboto' }
+      };
+
+      pdfMake.createPdf(docDefinition).download(`racun_${data.orderNumber}.pdf`);
+    }
+  </script>
 </body>
 </html>
-
